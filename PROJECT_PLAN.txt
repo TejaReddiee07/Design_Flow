@@ -1,0 +1,650 @@
+NOTE (2026-11-08): at the owner's request the database was switched from PostgreSQL/SQLAlchemy/Alembic
+to MongoDB (Atlas) via PyMongo; subscriptions were replaced by fixed pay-per-request prices; the LLM
+is Ollama (Anthropic optional). Where this plan mentions Postgres, SQLAlchemy, Alembic, SQLite or
+subscriptions, read the current README.md / docs instead.
+
+====================================================================
+AI DESIGN SUBSCRIPTION SAAS PLATFORM
+Understanding, Build Plan, and How It Works
+====================================================================
+
+Date: 2026-11-07
+Status: WAITING FOR YOUR APPROVAL. Nothing has been built yet.
+
+This file has four parts:
+
+  PART 1  What I understand you want
+  PART 2  How I am going to build it (stack, structure, phases)
+  PART 3  How the finished system works (flows, step by step)
+  PART 4  Decisions I made on your behalf, and what I need from you
+
+Read Part 4 carefully. It lists the choices where you may want
+something different. Reply "approved" or tell me what to change.
+
+
+====================================================================
+PART 1  WHAT I UNDERSTAND
+====================================================================
+
+You want ONE web application that lets a single founder run a
+premium "design subscription" agency (like DesignJoy / Designjoy-
+style unlimited-requests agencies) almost entirely with AI agents
+and automation.
+
+The one app contains nine areas:
+
+  1. Public Landing Website   marketing site with pricing, portfolio,
+                              FAQ, contact, and 20 service pages
+  2. Client Portal            where paying clients submit requests,
+                              upload files, track work, download
+                              deliverables, ask for revisions, see
+                              invoices, and chat with you
+  3. Admin Dashboard          your control room for clients,
+                              projects, requests, services, payments,
+                              subscriptions, notifications
+  4. AI Agent Control Center  11 agents with status, metrics and
+                              Start / Pause / Stop / Restart buttons
+  5. Service Management       a left menu listing all 20 services
+                              with live pending-request count badges
+  6. Notification Center      bell icon with unread count, panel,
+                              mark-as-read, real-time updates
+  7. Project Management       requests move through Pending ->
+                              Accepted -> In Progress -> Review ->
+                              Completed (or Rejected), with Accept /
+                              Reject / Completed buttons that update
+                              the database instantly
+  8. Billing                  subscriptions, invoices, payments
+  9. Analytics                clients, revenue, requests, conversion,
+                              agent performance, leads, subscriptions
+
+Plus three cross-cutting systems:
+
+  - Chat (client <-> admin, real-time, file sharing)
+  - File management (uploads, downloads, versions, brand assets,
+    Google Drive storage)
+  - Security (JWT, hashed passwords, validation, roles, rate
+    limiting, secure uploads, audit log)
+
+The 20 services are fixed and each one gets its own public page,
+its own request form, its own request list in admin, its own
+notification stream, and its own analytics.
+
+The 11 AI agents are: Lead, Outreach, Onboarding, Project Manager,
+Strategy, Content, Design, Revision, QA, Delivery, Marketing.
+
+The main automated pipeline (LangGraph) is:
+
+  Client Request -> Project Manager -> Strategy -> Content -> Design
+  -> QA -> Admin Approval (human pause) -> Delivery -> Revision
+  (loops back if client asks) -> Complete
+
+Tech stack is fixed by you: HTML/CSS/vanilla JS frontend, FastAPI
+backend, PostgreSQL + SQLAlchemy + Alembic, LangGraph + LangChain,
+Google Drive storage, JWT auth, Docker Compose deployment.
+
+
+====================================================================
+PART 2  HOW I AM GOING TO BUILD IT
+====================================================================
+
+--------------------------------------------------------------------
+2.1  Architecture in one picture
+--------------------------------------------------------------------
+
+   Browser (landing / portal / admin)   <-- static HTML, CSS, JS
+        |  HTTPS  REST (JSON)  +  WebSocket (real-time)
+        v
+   +-----------------------------------------------------------+
+   |  FastAPI "api" container                                  |
+   |   - serves the static frontend                            |
+   |   - REST API  /api/v1/...                                 |
+   |   - WebSocket /ws  (notifications, chat, agent status)    |
+   |   - JWT auth, role checks, rate limiting, audit log       |
+   +-----------------------------------------------------------+
+        |                              |
+        v                              v
+   PostgreSQL "db" container      Redis "redis" container
+   (all tables)                   (job queue + pub/sub so api and
+                                   worker can talk in real time)
+                                       |
+                                       v
+   +-----------------------------------------------------------+
+   |  "worker" container (same code, different command)        |
+   |   - runs the LangGraph pipelines and the 11 agents        |
+   |   - writes results, logs and notifications back to DB     |
+   |   - publishes events to Redis -> api pushes over WebSocket|
+   +-----------------------------------------------------------+
+        |
+        v
+   External services (all optional, all have a "mock" mode):
+     LLM (Anthropic Claude), Google Drive, Stripe, SMTP email,
+     image generation, web search for lead finding
+
+Why a separate worker: agent runs can take minutes. Keeping them
+off the web process means the website never freezes while an
+agent is thinking. Both containers are built from the same image,
+so this costs nothing extra in code.
+
+--------------------------------------------------------------------
+2.2  Folder structure
+--------------------------------------------------------------------
+
+D:\Saas_project\
+|
+|-- PROJECT_PLAN.txt              (this file)
+|-- README.md                      setup, run, deploy instructions
+|-- docker-compose.yml             api + worker + db + redis
+|-- Dockerfile
+|-- .env.example                   every environment variable, documented
+|-- .gitignore
+|
+|-- backend\
+|   |-- requirements.txt
+|   |-- alembic.ini
+|   |-- alembic\                   migrations (versions\ folder)
+|   |-- app\
+|   |   |-- main.py                FastAPI app, routers, static mount
+|   |   |-- core\
+|   |   |   |-- config.py          settings from .env
+|   |   |   |-- security.py        JWT, password hashing
+|   |   |   |-- deps.py            get_db, get_current_user, require_role
+|   |   |   |-- rate_limit.py
+|   |   |   |-- audit.py
+|   |   |   |-- events.py          Redis pub/sub bridge
+|   |   |-- db\
+|   |   |   |-- base.py, session.py
+|   |   |   |-- seed.py            20 services, 11 agents, demo admin,
+|   |   |                          demo client, sample requests
+|   |   |-- models\                one file per table (19 tables)
+|   |   |-- schemas\               Pydantic request/response models
+|   |   |-- api\v1\
+|   |   |   |-- auth.py            register, login, refresh, me, logout
+|   |   |   |-- clients.py
+|   |   |   |-- projects.py
+|   |   |   |-- services.py
+|   |   |   |-- requests.py        incl. accept / reject / complete
+|   |   |   |-- designs.py, revisions.py, deliveries.py
+|   |   |   |-- files.py           upload / download / versions / assets
+|   |   |   |-- notifications.py
+|   |   |   |-- chat.py
+|   |   |   |-- analytics.py
+|   |   |   |-- agents.py          list, start, pause, stop, restart, logs
+|   |   |   |-- billing.py         plans, subscribe, invoices, webhook
+|   |   |   |-- leads.py, outreach.py
+|   |   |   |-- support.py
+|   |   |   |-- contact.py         public contact / lead form
+|   |   |   |-- admin.py           user + role management
+|   |   |   |-- ws.py              WebSocket endpoint
+|   |   |-- services\              business logic (one per domain)
+|   |   |   |-- notification_service.py
+|   |   |   |-- storage\
+|   |   |   |   |-- base.py, local.py, google_drive.py
+|   |   |   |-- billing\
+|   |   |   |   |-- base.py, stripe_provider.py, mock_provider.py
+|   |   |   |-- email\
+|   |   |   |   |-- base.py, smtp.py, mock.py
+|   |   |-- agents\
+|   |   |   |-- registry.py        the 11 agents, status, metrics
+|   |   |   |-- runner.py          worker loop, start/pause/stop
+|   |   |   |-- llm.py             LangChain model factory (+ mock)
+|   |   |   |-- tools\             drive, db, search, email tools
+|   |   |   |-- graphs\
+|   |   |   |   |-- request_pipeline.py   the main LangGraph (PM ->
+|   |   |   |   |                          Strategy -> Content ->
+|   |   |   |   |                          Design -> QA -> Approval
+|   |   |   |   |                          -> Delivery -> Revision)
+|   |   |   |   |-- lead_pipeline.py      Lead -> Outreach -> follow-up
+|   |   |   |   |-- onboarding_graph.py
+|   |   |   |   |-- marketing_graph.py
+|   |   |   |-- nodes\             one file per agent (11 files)
+|   |   |-- worker.py              entry point for the worker container
+|   |-- tests\                     pytest: auth, requests, notifications,
+|                                  agents (mock LLM)
+|
+|-- frontend\
+|   |-- index.html                 landing page
+|   |-- services\                  20 service pages (one HTML each)
+|   |   |-- logo-design.html ... custom-design-requests.html
+|   |-- portal\
+|   |   |-- index.html             client portal app shell
+|   |-- admin\
+|   |   |-- index.html             admin dashboard app shell
+|   |-- login.html, register.html
+|   |-- assets\
+|   |   |-- css\
+|   |   |   |-- tokens.css         colors, spacing, light/dark themes
+|   |   |   |-- base.css           reset, typography, layout
+|   |   |   |-- components.css     buttons, cards, badges, modals,
+|   |   |   |                      glass panels, tables, forms
+|   |   |   |-- landing.css, portal.css, admin.css
+|   |   |-- js\
+|   |   |   |-- core\
+|   |   |   |   |-- api.js         fetch wrapper, JWT, refresh
+|   |   |   |   |-- auth.js
+|   |   |   |   |-- ws.js          WebSocket client, auto-reconnect
+|   |   |   |   |-- router.js      hash router for portal and admin
+|   |   |   |   |-- store.js       tiny reactive state
+|   |   |   |   |-- ui.js          toast, modal, theme toggle, helpers
+|   |   |   |   |-- charts.js      small canvas chart library (no deps)
+|   |   |   |-- landing\           animations, pricing toggle, FAQ
+|   |   |   |-- portal\            one module per portal page
+|   |   |   |-- admin\             one module per admin page
+|   |   |-- img\                   logo, portfolio placeholders (SVG)
+|
+|-- docs\
+|   |-- API.md                     every endpoint, request, response
+|   |-- DATABASE.md                schema explained
+|   |-- AGENTS.md                  what each agent does, inputs, outputs
+|   |-- DEPLOYMENT.md              VPS / cloud deploy guide
+|   |-- schema.sql                 full SQL schema (generated from models)
+
+--------------------------------------------------------------------
+2.3  Database (19 tables, exactly the ones you listed)
+--------------------------------------------------------------------
+
+  users            id, email, password_hash, full_name, role_id,
+                   is_active, avatar, created_at, last_login
+  roles            admin, client, (staff reserved for future)
+  clients          user_id, company, website, industry, brand notes,
+                   drive_folder_id, status, onboarding_stage
+  services         20 rows: slug, name, category, description,
+                   turnaround_days, form_schema (JSON, drives each
+                   service's own request form), icon, is_active
+  projects         client_id, name, status, drive_folder_id
+  service_requests client_id, project_id, service_id, title,
+                   description, brief (JSON, from the service form),
+                   priority (low/normal/high/urgent), status
+                   (pending/accepted/rejected/in_progress/review/
+                   completed), submitted_at, accepted_at,
+                   completed_at, assigned_agent_run_id
+  designs          request_id, version, file ids, concept text,
+                   generated_by (agent/human), status
+  revisions        request_id, design_id, client feedback, status,
+                   round number
+  deliveries       request_id, file ids, download links, delivered_at
+  payments         client_id, subscription_id, amount, currency,
+                   provider, provider_payment_id, status, invoice_url
+  subscriptions    client_id, plan (starter/pro/premium), status,
+                   provider_subscription_id, current_period_end,
+                   active_request_limit
+  notifications    user_id, type, title, body, link, is_read,
+                   service_id (so each service has its own stream)
+  agent_logs       agent_key, run_id, request_id, status, step,
+                   input/output summary, tokens, duration, error
+  lead_database    company, website, industry, contact, score,
+                   analysis (JSON), status, source
+  outreach_history lead_id, channel, subject, body, sent_at,
+                   follow_up_at, reply_status
+  brand_assets     client_id, type (logo/font/color/guideline/other),
+                   file id, version
+  audit_logs       user_id, action, entity, entity_id, ip, before/after
+  support_tickets  client_id, subject, status, priority, messages
+  analytics        daily snapshot rows: metric, value, dimension,
+                   date (so dashboards are fast)
+
+  Supporting tables (needed to make the above work):
+  files            every uploaded/generated file: owner, request,
+                   storage backend, path/drive id, version, mime, size
+  chat_messages    conversation (client<->admin), sender, body,
+                   file id, read_at
+  agents           11 rows: key, name, status, tasks_completed,
+                   success_rate, last_run_at, current_activity, config
+  refresh_tokens   for JWT refresh / logout
+
+--------------------------------------------------------------------
+2.4  API surface (all under /api/v1)
+--------------------------------------------------------------------
+
+  Auth          POST register, login, refresh, logout; GET me
+  Clients       CRUD, GET /clients/{id}/overview
+  Projects      CRUD
+  Services      GET list (with pending counts), GET by slug,
+                PATCH (admin), GET /services/{id}/requests,
+                GET /services/{id}/analytics
+  Requests      POST create, GET list (filters), GET one,
+                PATCH, POST accept / reject / complete /
+                start / review, GET timeline
+  Designs       GET by request, POST upload, POST approve
+  Revisions     POST create (client), GET list, PATCH status
+  Deliveries    GET by request, POST create (admin/agent),
+                GET download link
+  Files         POST upload (multipart), GET download, GET versions,
+                brand-assets CRUD
+  Notifications GET list, GET unread-count, POST mark-read,
+                POST mark-all-read
+  Chat          GET conversations, GET messages, POST message
+  Analytics     GET overview, revenue, requests, agents, leads,
+                subscriptions (admin), GET my-stats (client)
+  Agents        GET list, GET one, POST start / pause / stop /
+                restart, GET logs, POST run (manual trigger)
+  Billing       GET plans, POST checkout, GET subscription,
+                POST cancel, GET invoices, POST webhook
+  Leads         CRUD, POST /leads/generate (triggers Lead Agent)
+  Outreach      GET history, POST send (triggers Outreach Agent)
+  Support       tickets CRUD
+  Contact       POST public contact form -> creates a lead +
+                notification
+  Admin         users, roles, audit log
+  WebSocket     /ws?token=...  pushes: notification, request_update,
+                chat_message, agent_status, badge_counts
+
+Full documentation with example bodies will be in docs/API.md and
+auto-generated Swagger UI at /docs.
+
+--------------------------------------------------------------------
+2.5  Frontend approach
+--------------------------------------------------------------------
+
+  - Pure HTML/CSS/JS, no frameworks, no build step. Open the URL and
+    it works.
+  - Landing + 20 service pages are plain static pages (good for SEO).
+  - Portal and Admin are each a single HTML shell with a hash router
+    (#/requests, #/agents, etc.) so navigation is instant.
+  - One design system: CSS variables for color/spacing, light and
+    dark theme via a data-theme attribute, remembered in localStorage,
+    defaults to the OS setting.
+  - Look and feel: glassmorphism panels, soft gradients, subtle
+    motion (scroll reveals, hover lifts, animated counters), rounded
+    cards, generous spacing. Premium startup aesthetic.
+  - Charts are drawn with a small hand-written canvas library so
+    there are no external dependencies.
+  - Fully responsive: sidebar collapses to a bottom bar on mobile,
+    tables become card lists, forms stack.
+
+--------------------------------------------------------------------
+2.6  Build phases (in order)
+--------------------------------------------------------------------
+
+  Phase 1  Foundation
+           Folder structure, Docker Compose, .env.example, FastAPI
+           skeleton, config, DB session, all 19+ models, Alembic
+           initial migration, schema.sql, seed script, JWT auth,
+           roles, rate limiting, audit log.
+
+  Phase 2  Core APIs
+           Clients, projects, services, requests (with Accept /
+           Reject / Complete), designs, revisions, deliveries, files
+           (local storage first), notifications, support, contact.
+
+  Phase 3  Real-time layer
+           Redis pub/sub, WebSocket endpoint, notification service
+           that both writes to DB and pushes live, badge-count
+           broadcasting, chat.
+
+  Phase 4  Design system + Landing website
+           tokens.css, components.css, theme toggle, landing page
+           with all 8 sections, 20 service pages (generated from one
+           template + service data so they stay consistent).
+
+  Phase 5  Client Portal
+           Dashboard, new request (form changes per service), my
+           requests, request detail (timeline, files, designs,
+           revisions, deliveries), files, invoices, subscription,
+           chat, settings.
+
+  Phase 6  Admin Dashboard
+           Overview, services menu with count badges, request boards
+           per service with action buttons, request detail, clients,
+           projects, billing, subscriptions, leads, outreach,
+           support, notifications panel, users/roles, audit log,
+           analytics with charts.
+
+  Phase 7  AI Agent system
+           LangChain model factory (Claude, with mock mode), agent
+           registry, worker runner with Start/Pause/Stop/Restart,
+           the main request LangGraph, lead/outreach graph,
+           onboarding graph, marketing graph, 11 agent nodes, agent
+           logs, Agent Control Center UI with live status.
+
+  Phase 8  Integrations + billing
+           Google Drive storage backend, Stripe billing provider
+           (plus mock), SMTP email, webhook handling.
+
+  Phase 9  Hardening and docs
+           Tests, input validation pass, upload security, README,
+           API.md, DATABASE.md, AGENTS.md, DEPLOYMENT.md, final
+           docker build and smoke test.
+
+I will report after each phase with what is done and how to try it.
+
+
+====================================================================
+PART 3  HOW IT WORKS (STEP BY STEP)
+====================================================================
+
+--------------------------------------------------------------------
+3.1  First run
+--------------------------------------------------------------------
+
+  1. Copy .env.example to .env, fill in at least SECRET_KEY and
+     DB password. Everything else can stay in mock mode.
+  2. docker compose up --build
+  3. The api container runs migrations and the seed script:
+     20 services, 11 agents, an admin account, a demo client and a
+     few demo requests.
+  4. Open http://localhost:8000
+       /              landing page
+       /services/...  service pages
+       /login         sign in
+       /portal        client portal (login as demo client)
+       /admin         admin dashboard (login as admin)
+       /docs          Swagger API docs
+
+--------------------------------------------------------------------
+3.2  Visitor to client
+--------------------------------------------------------------------
+
+  Visitor reads landing page -> clicks a service page -> clicks
+  "Start a request" or "Subscribe" -> registers -> picks a plan ->
+  pays (Stripe, or instant in mock mode) -> subscription row created
+  -> Onboarding Agent runs: creates the client's Google Drive folder
+  (or local folder), creates a welcome support ticket and chat
+  message asking for brand assets -> you get a notification "New
+  client: Acme".
+
+  A visitor who only fills the contact form becomes a row in
+  lead_database with source = "website" and you get a "New lead"
+  notification.
+
+--------------------------------------------------------------------
+3.3  A request, end to end
+--------------------------------------------------------------------
+
+  1. Client opens the portal, picks "YouTube Thumbnail Design".
+     The form shown comes from that service's form_schema, so each
+     service asks its own questions (video title, channel, style...).
+  2. Client submits, optionally attaches files.
+  3. Backend creates the service_request (status = pending), stores
+     files, writes an audit row, creates a notification for the
+     admin tagged with the service, and publishes an event.
+  4. Within milliseconds your admin dashboard (if open) receives the
+     event over WebSocket: the bell goes from 11 to 12, the
+     "YouTube Thumbnail" item in the services menu goes from (5) to
+     (6) and flashes, a toast appears, and the request card shows up
+     at the top of that service's board.
+  5. You click [Accept]. One API call: status -> accepted, DB updated
+     instantly, client gets a notification and sees the status
+     change live in their portal. The request is queued for the
+     agent pipeline.
+  6. Worker picks it up and runs the LangGraph:
+       Project Manager  reads the brief, sets priority, writes a
+                        task plan, status -> in_progress
+       Strategy         researches the client's brand notes and
+                        competitors, writes direction
+       Content          writes headline / caption / copy options
+       Design           writes detailed design concepts and
+                        (if an image provider is configured)
+                        generates draft images; saved as designs v1
+       QA               checks the output against the brief and brand
+                        assets, scores it, flags issues; may send it
+                        back to Design once
+       Admin Approval   graph pauses (LangGraph interrupt). Status
+                        -> review. You get a notification "Ready for
+                        your review". You open it, see the concepts,
+                        upload your final files (or approve AI
+                        drafts), click Approve.
+       Delivery         creates the delivery, uploads final files to
+                        the client's Drive folder, generates download
+                        links, notifies the client.
+  7. Client downloads, or clicks "Request revision" and writes
+     feedback.
+  8. Revision Agent summarises the feedback into concrete change
+     items, creates revision round 2, re-enters the Design -> QA ->
+     Approval -> Delivery loop.
+  9. When the client (or you) marks it done, status -> completed,
+     analytics snapshot updates, counts drop.
+
+  Every step writes an agent_logs row so the Control Center and
+  the request timeline show exactly what happened.
+
+  You can also skip the agents entirely: Accept, do the work
+  yourself, upload files, click [Completed]. The buttons work
+  independently of the AI.
+
+--------------------------------------------------------------------
+3.4  Notifications
+--------------------------------------------------------------------
+
+  One function, notify(user, type, title, body, link, service_id),
+  is called from everywhere (new request, revision, upload, payment,
+  lead, agent needs approval, chat message). It inserts the row and
+  publishes to Redis. The api process is subscribed and forwards to
+  every open WebSocket of that user. The bell count is simply the
+  number of unread rows. Clicking the bell opens the panel; clicking
+  an item marks it read, navigates to the link, and the count drops.
+  "Mark all read" exists too. The services menu badges use the same
+  mechanism with a different event type.
+
+--------------------------------------------------------------------
+3.5  AI Agent Control Center
+--------------------------------------------------------------------
+
+  The agents table holds one row per agent. The worker loop:
+    - polls a Redis queue for jobs (request pipeline, lead run,
+      marketing post, etc.)
+    - before each step checks the agent's status; "paused" waits,
+      "stopped" aborts the run cleanly and records it
+    - updates current_activity, last_run_at, tasks_completed,
+      success_rate after each step and publishes agent_status events
+  The Control Center page shows all 11 cards live, with the four
+  buttons calling POST /agents/{key}/start|pause|stop|restart.
+  Each card expands to show the last 50 log lines.
+
+  Scheduled agents (Lead, Outreach follow-ups, Marketing posts) run
+  on a schedule you set in the admin UI (default: Lead daily,
+  Marketing 3x/week, Outreach follow-ups every morning). Scheduling
+  is done by the worker using APScheduler, so no external cron.
+
+--------------------------------------------------------------------
+3.6  Security
+--------------------------------------------------------------------
+
+  - Passwords hashed with bcrypt (passlib).
+  - JWT access token (15 min) + refresh token (7 days, stored and
+    revocable). Sent as Authorization: Bearer.
+  - Roles enforced per endpoint. Clients can only ever see their own
+    rows (enforced in queries, not just the UI).
+  - Pydantic validation on every request body.
+  - Rate limiting (slowapi): strict on login/register/contact, normal
+    elsewhere.
+  - Uploads: whitelist of extensions and MIME types, size limit,
+    random stored filenames, never served from an executable path,
+    content-type sniffing.
+  - Every write by an admin and every status change is in audit_logs.
+  - CORS locked to the app origin, secure headers middleware.
+
+--------------------------------------------------------------------
+3.7  Billing
+--------------------------------------------------------------------
+
+  Three plans (Starter / Pro / Premium) with monthly price, number
+  of active requests at a time, and turnaround promise. Checkout
+  goes to Stripe Checkout; the Stripe webhook updates subscriptions
+  and inserts payments rows and a "New payment received"
+  notification. In mock mode, "Subscribe" activates immediately so
+  you can test the whole flow without a Stripe account. Invoices are
+  listed in the portal from the payments table.
+
+
+====================================================================
+PART 4  DECISIONS I MADE, AND WHAT I NEED FROM YOU
+====================================================================
+
+These are the places where your brief did not specify and I chose.
+Say "approved" to accept all, or tell me which to change.
+
+  D1  LLM provider: Anthropic Claude via langchain-anthropic.
+      Default model claude-sonnet-5-5 for all agents (good balance of
+      cost and quality); configurable per agent in .env.
+      Mock mode (no API key) returns realistic placeholder text so
+      the whole platform works without any key.
+
+  D2  Design Agent and images: a text LLM cannot draw. The Design
+      Agent produces detailed concepts, layouts, color/typography
+      direction and copy. Actual image generation is a pluggable
+      provider (interface + mock). You can plug in an image API
+      later or, more realistically for a premium agency, you do the
+      final visual in Figma/Canva using the agent's concept, then
+      upload. I will build it so both paths work.
+
+  D3  Lead Generation Agent: finding real businesses needs an
+      external search/scrape API. I will implement a provider
+      interface with (a) a mock/demo provider that generates
+      plausible leads for testing and (b) a ready slot for a real
+      provider (SerpAPI or Google Places) that activates when a key
+      is present. Website analysis uses the LLM on fetched page
+      text.
+
+  D4  Outreach email: SMTP provider (works with Gmail app password,
+      Resend, SendGrid SMTP) plus mock. Default is mock so nothing
+      is ever sent accidentally. Outreach also requires an explicit
+      "approve and send" click in admin unless you turn on
+      auto-send in settings.
+
+  D5  Payments: Stripe (Checkout + webhooks) with mock provider.
+      If you prefer Razorpay, say so and I will build that instead.
+
+  D6  Storage: Google Drive via a service account (you share a root
+      folder with the service account email). Local disk storage is
+      the automatic fallback when Drive is not configured, so
+      uploads work on day one.
+
+  D7  Real-time: WebSockets with Redis pub/sub. Adds one small
+      container. Worth it for true real-time and for a separate
+      agent worker.
+
+  D8  Currency and pricing shown on the landing page: USD with
+      placeholder prices ($1,995 / $2,995 / $4,995 per month). Easy
+      to change in one config file.
+
+  D9  Brand name on the site: I will use a placeholder name
+      "Designflow" and a simple SVG logo. Tell me your real brand
+      name if you have one.
+
+  D10 Testing: pytest with an in-memory SQLite override for speed,
+      covering auth, request lifecycle, notifications, agent runner
+      with mock LLM.
+
+What I need from you now:
+
+  - Approval (or changes) on D1 to D10.
+  - Optional: brand name, real prices, your email for the admin
+    account. Defaults will be used if you do not provide them.
+  - Nothing else. API keys for Claude, Stripe, Google Drive and
+    email are only needed when you want to switch those parts from
+    mock to live, and .env.example will explain exactly where to put
+    each one.
+
+What you will get at the end:
+
+  - A folder you can run with one command.
+  - Every screen in Part 1 working, mobile responsive, light and
+    dark mode.
+  - All 20 services with their own pages, forms, boards, badges,
+    notifications and analytics.
+  - All 11 agents in a live Control Center with the LangGraph
+    pipeline described in 3.3.
+  - Complete SQL schema, API docs, agent docs, deployment guide.
+
+Reply "approved" and I will start Phase 1.
+====================================================================

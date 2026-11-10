@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Log in — Designflow</title>
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/base.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/components.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/landing.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/motion.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/prism.css?v=20261109t">
+  <script>(function(){try{var t=localStorage.getItem('df-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body class="sf pr pr-auth">
+<div class="auth-page">
+  <aside class="auth-side">
+    <a href="/" class="brand" style="color:#fff"><img src="/assets/img/logo-gold.svg" alt="">Designflow</a>
+    <div>
+      <h2 class="pr-auth-title">Your studio, your agents, one dashboard.</h2>
+      <p style="opacity:.8;margin-top:16px;max-width:420px">Order designs at a fixed price, track every request, download files and chat with your designer.</p>
+      <div class="glass" style="margin-top:32px;padding:18px 20px;border-radius:16px;max-width:420px;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)">
+        <p style="font-size:.95rem">19 services · fixed prices in USD, GBP and INR · delivery in 1 to 5 days · unlimited revisions.</p>
+      </div>
+    </div>
+    <p style="opacity:.6;font-size:.8rem">© Designflow · Built by Nagateja Goli</p>
+  </aside>
+  <main class="auth-form">
+    <form class="card" id="login-form" novalidate>
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-6">
+          <a href="/" class="brand only-mobile"><img src="/assets/img/logo-gold.svg" alt="">Designflow</a>
+        </div>
+        <h1 class="pr-auth-h1">Welcome back</h1>
+        <p class="text-3 mt-2 mb-6">Log in to your portal or admin dashboard.</p>
+        <div class="field"><label class="label" for="email">Email</label><input class="input" id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com"></div>
+        <div class="field"><label class="label" for="password">Password</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+        <p class="error-text mt-3 hidden" id="form-error"></p>
+        <button class="btn btn-primary btn-lg btn-block mt-6" type="submit">Log in</button>
+        <p class="text-sm text-3 text-center mt-6">No account yet? <a href="/register">Create account</a></p>
+      </div>
+    </form>
+  </main>
+</div>
+<script type="module" src="/assets/js/landing/auth-page.js?v=20261109t"></script>
+</body>
+</html>

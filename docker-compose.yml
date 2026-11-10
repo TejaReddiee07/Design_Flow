@@ -1,0 +1,71 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["mongod", "--quiet", "--logpath", "/dev/null"]
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Set MONGO_URI in .env to your Atlas connection string to use Atlas instead of the bundled mongo service.
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}
+      MONGO_DB: ${MONGO_DB:-designflow}
+      REDIS_URL: redis://redis:6379/0
+    command: ["api"]
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - uploads:/app/uploads
+      - ./secrets:/app/secrets:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}
+      MONGO_DB: ${MONGO_DB:-designflow}
+      REDIS_URL: redis://redis:6379/0
+    command: ["worker"]
+    volumes:
+      - uploads:/app/uploads
+      - ./secrets:/app/secrets:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  mongodata:
+  redisdata:
+  uploads:

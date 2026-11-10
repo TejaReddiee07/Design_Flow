@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-lock>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin — Designflow</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/base.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/components.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/motion.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/app-prism.css?v=20261109t">
+</head>
+<body>
+<div class="app-shell" id="app">
+  <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+    <a class="sidebar-brand" href="#/"><img src="/assets/img/logo-gold.svg" alt="">Designflow <span class="badge badge-brand" style="margin-left:auto;font-size:10px">ADMIN</span></a>
+    <nav class="sidebar-nav" id="sidenav"></nav>
+    <div class="sidebar-footer" id="sidebar-footer"></div>
+  </aside>
+  <div class="sidebar-scrim hidden" id="sidebar-scrim"></div>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-icon sidebar-toggle" id="sidebar-toggle" aria-label="Open navigation"><svg class="icon"><use href="/assets/img/icons.svg#menu"></use></svg></button>
+      <div class="page-title" id="page-title">Overview</div>
+      <div class="search input-group hide-mobile">
+        <svg class="icon"><use href="/assets/img/icons.svg#search"></use></svg>
+        <input class="input input-sm" id="global-search" placeholder="Search requests… (Enter)" aria-label="Search requests">
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="ws-indicator" id="ws-indicator" data-tip="Connecting…"><span class="live-dot"></span><span class="ws-label hide-mobile">Live</span></span>
+        <button class="btn btn-ghost btn-icon" data-theme-toggle aria-label="Toggle theme"></button>
+        <div class="dropdown bell" id="bell">
+          <button class="btn btn-ghost btn-icon" id="bell-btn" aria-label="Notifications"><svg class="icon"><use href="/assets/img/icons.svg#bell"></use></svg></button>
+          <span class="count-badge hidden" id="bell-count">0</span>
+          <div class="notif-panel hidden" id="notif-panel">
+            <div class="notif-panel-header"><span>Notifications</span><button class="btn btn-ghost btn-sm" id="notif-mark-all">Mark all read</button></div>
+            <div class="notif-list" id="notif-list"></div>
+            <div style="padding:10px 16px;border-top:1px solid var(--border)"><a href="#/notifications" class="btn btn-secondary btn-sm btn-block">View all</a></div>
+          </div>
+        </div>
+        <div class="dropdown" id="user-menu">
+          <button class="btn btn-ghost" id="user-btn" style="padding:0 6px"><span class="avatar avatar-sm" id="user-avatar">?</span><span class="hide-mobile" id="user-name"></span><svg class="icon icon-sm hide-mobile"><use href="/assets/img/icons.svg#chevron-down"></use></svg></button>
+          <div class="menu" id="user-menu-panel">
+            <a class="menu-item" href="#/settings"><svg class="icon"><use href="/assets/img/icons.svg#settings"></use></svg>Settings</a>
+            <a class="menu-item" href="/" target="_blank"><svg class="icon"><use href="/assets/img/icons.svg#external"></use></svg>Public site</a>
+            <a class="menu-item" href="/docs" target="_blank"><svg class="icon"><use href="/assets/img/icons.svg#file"></use></svg>API docs</a>
+            <div class="menu-sep"></div>
+            <button class="menu-item danger" id="logout-btn"><svg class="icon"><use href="/assets/img/icons.svg#logout"></use></svg>Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="outlet"></main>
+  </div>
+</div>
+<script type="module" src="/assets/js/admin/app.js?v=20261109t"></script>
+</body>
+</html>

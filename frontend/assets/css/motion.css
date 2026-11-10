@@ -1,0 +1,173 @@
+/* ============================================================
+   Designflow — motion.css
+   Site-wide motion system: entrance choreography, scroll
+   reveals with sibling stagger, and hover micro-interactions.
+   Loaded after every other stylesheet so its refinements win.
+   Only `transform` and `opacity` are animated (compositor
+   friendly), and everything shuts off under reduced motion.
+   ============================================================ */
+
+:root {
+  --m-rise: 640ms;   /* scroll-reveal entrance */
+  --m-hero: 760ms;   /* hero load-in */
+  --m-card: 460ms;   /* SPA content entrance */
+}
+
+/* ---------- 1. Smooth in-page anchors ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+html { scroll-padding-top: 5.375rem; }
+
+/* ---------- 2. Scroll reveals ----------
+   base.css reveals with a transition; replaced here by a keyframe
+   with backwards fill so stagger delays never leak into later
+   hover transitions on the same element. */
+.reveal {
+  opacity: 0;
+  transform: none;
+  transition: none;
+}
+
+.reveal.in {
+  opacity: 1;
+  animation: m-rise var(--m-rise) var(--ease) var(--m-delay, 0ms) backwards;
+}
+
+@keyframes m-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- 3. Sibling stagger ----------
+   Children of the main grids cascade in, 55 ms apart. The same
+   --m-delay feeds both the landing reveals and the SPA grids. */
+.services-grid > :nth-child(2), .steps > :nth-child(2), .work-grid > :nth-child(2), .faq > :nth-child(2), .svc-grid > :nth-child(2),
+.kpi-grid > :nth-child(2), .dash-grid > :nth-child(2), .cf-grid > :nth-child(2), .svc-pick > :nth-child(2) { --m-delay: 55ms; }
+
+.services-grid > :nth-child(3), .steps > :nth-child(3), .work-grid > :nth-child(3), .faq > :nth-child(3), .svc-grid > :nth-child(3),
+.kpi-grid > :nth-child(3), .dash-grid > :nth-child(3), .cf-grid > :nth-child(3), .svc-pick > :nth-child(3) { --m-delay: 110ms; }
+
+.services-grid > :nth-child(4), .steps > :nth-child(4), .work-grid > :nth-child(4), .faq > :nth-child(4), .svc-grid > :nth-child(4),
+.kpi-grid > :nth-child(4), .dash-grid > :nth-child(4), .cf-grid > :nth-child(4), .svc-pick > :nth-child(4) { --m-delay: 165ms; }
+
+.services-grid > :nth-child(5), .steps > :nth-child(5), .work-grid > :nth-child(5), .faq > :nth-child(5), .svc-grid > :nth-child(5),
+.kpi-grid > :nth-child(5), .dash-grid > :nth-child(5), .cf-grid > :nth-child(5), .svc-pick > :nth-child(5) { --m-delay: 220ms; }
+
+.services-grid > :nth-child(6), .steps > :nth-child(6), .work-grid > :nth-child(6), .faq > :nth-child(6), .svc-grid > :nth-child(6),
+.kpi-grid > :nth-child(6), .dash-grid > :nth-child(6), .cf-grid > :nth-child(6), .svc-pick > :nth-child(6) { --m-delay: 275ms; }
+
+.services-grid > :nth-child(7), .steps > :nth-child(7), .work-grid > :nth-child(7), .faq > :nth-child(7), .svc-grid > :nth-child(7),
+.kpi-grid > :nth-child(7), .dash-grid > :nth-child(7), .cf-grid > :nth-child(7), .svc-pick > :nth-child(7) { --m-delay: 330ms; }
+
+.services-grid > :nth-child(8), .steps > :nth-child(8), .work-grid > :nth-child(8), .faq > :nth-child(8), .svc-grid > :nth-child(8),
+.kpi-grid > :nth-child(8), .dash-grid > :nth-child(8), .cf-grid > :nth-child(8), .svc-pick > :nth-child(8) { --m-delay: 385ms; }
+
+.services-grid > :nth-child(n + 9), .steps > :nth-child(n + 9), .work-grid > :nth-child(n + 9), .faq > :nth-child(n + 9), .svc-grid > :nth-child(n + 9),
+.kpi-grid > :nth-child(n + 9), .dash-grid > :nth-child(n + 9), .cf-grid > :nth-child(n + 9), .svc-pick > :nth-child(n + 9) { --m-delay: 430ms; }
+
+/* ---------- 4. Hero load-in (landing + service pages) ---------- */
+.hero .eyebrow, .hero h1, .hero .lead, .hero .hero-ctas, .hero .hero-stats,
+.svc-hero > * {
+  animation: m-rise var(--m-hero) var(--ease) backwards;
+}
+
+.hero .eyebrow,      .svc-hero > :nth-child(1) { animation-delay: 60ms; }
+.hero h1,            .svc-hero > :nth-child(2) { animation-delay: 150ms; }
+.hero .lead,         .svc-hero > :nth-child(3) { animation-delay: 240ms; }
+.hero .hero-ctas,    .svc-hero > :nth-child(4) { animation-delay: 330ms; }
+.hero .hero-stats,   .svc-hero > :nth-child(5) { animation-delay: 420ms; }
+
+/* ---------- 5. SPA route + content entrances ---------- */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.625rem) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.kpi-grid > *, .dash-grid > *, .cf-grid > *, .svc-pick > * {
+  animation: m-rise var(--m-card) var(--ease) var(--m-delay, 0ms) backwards;
+}
+
+/* ---------- 6. Micro-interactions ---------- */
+a { transition: color var(--dur-fast); }
+
+.btn:not(:disabled):not([aria-disabled="true"]):hover { transform: translateY(-1px); }
+.btn:not(:disabled):not([aria-disabled="true"]):active { transform: translateY(0) scale(0.98); }
+
+.btn-primary:not(:disabled):hover {
+  box-shadow: 0 0.625rem 1.5rem -0.625rem rgb(var(--brand-rgb) / 0.55);
+}
+
+/* Light sweep across primary buttons on hover */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.22) 50%, transparent 58%);
+  transform: translateX(-130%);
+  transition: transform 600ms var(--ease);
+  pointer-events: none;
+}
+
+.btn-primary:hover::after { transform: translateX(130%); }
+
+/* Trailing arrows nudge forward on the big CTAs */
+.btn .icon { transition: transform var(--dur-fast) var(--ease); }
+.hero-ctas .btn:hover .icon,
+.cta-band .btn:hover .icon { transform: translateX(0.1875rem); }
+
+.nav-links a { transition: background var(--dur-fast), color var(--dur-fast); }
+
+/* Cards and tiles settle with the same lift language */
+.service-card, .step, .work, .cf-card, .contact-info {
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    border-color var(--dur), background var(--dur-fast);
+}
+
+.step:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: var(--shadow-md);
+}
+
+.faq details { transition: border-color var(--dur-fast), background var(--dur-fast); }
+.table-wrap tr { transition: background var(--dur-fast); }
+
+/* Theme toggle crossfade */
+body { transition: background-color 360ms var(--ease), color 360ms var(--ease); }
+
+/* ---------- 7. Reduced motion: everything static ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .reveal, .reveal.in {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .hero .eyebrow, .hero h1, .hero .lead, .hero .hero-ctas, .hero .hero-stats,
+  .svc-hero > *,
+  .kpi-grid > *, .dash-grid > *, .cf-grid > *, .svc-pick > * {
+    animation: none !important;
+  }
+
+  .btn-primary::after { display: none; }
+  body { transition: none; }
+}

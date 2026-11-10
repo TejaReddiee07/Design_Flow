@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-lock>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Client Portal — Designflow</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/base.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/components.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/motion.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/app-prism.css?v=20261109t">
+</head>
+<body>
+<div class="app-shell" id="app" hidden>
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/"><img src="/assets/img/logo-gold.svg" alt="">Designflow</a>
+    <nav class="sidebar-nav" id="side-nav" aria-label="Portal">
+      <a class="nav-item" href="#/" data-route="/"><svg class="icon"><use href="/assets/img/icons.svg#home"></use></svg>Dashboard</a>
+      <a class="nav-item" href="#/new" data-route="/new"><svg class="icon"><use href="/assets/img/icons.svg#plus"></use></svg>New request</a>
+      <a class="nav-item" href="#/requests" data-route="/requests"><svg class="icon"><use href="/assets/img/icons.svg#inbox"></use></svg>My requests <span class="count-badge is-zero" id="nav-active-count" hidden>0</span></a>
+      <a class="nav-item" href="#/designs" data-route="/designs"><svg class="icon"><use href="/assets/img/icons.svg#image"></use></svg>Your designs</a>
+      <a class="nav-item" href="#/files" data-route="/files"><svg class="icon"><use href="/assets/img/icons.svg#folder"></use></svg>Files &amp; brand assets</a>
+      <a class="nav-item" href="#/projects" data-route="/projects"><svg class="icon"><use href="/assets/img/icons.svg#layers"></use></svg>Projects</a>
+      <div class="nav-section">Help</div>
+      <a class="nav-item" href="#/chat" data-route="/chat"><svg class="icon"><use href="/assets/img/icons.svg#message"></use></svg>Chat <span class="count-badge" id="nav-chat-count" hidden>0</span></a>
+      <a class="nav-item" href="#/support" data-route="/support"><svg class="icon"><use href="/assets/img/icons.svg#life-buoy"></use></svg>Support</a>
+      <div class="nav-section">Account</div>
+      <a class="nav-item" href="#/invoices" data-route="/invoices"><svg class="icon"><use href="/assets/img/icons.svg#credit-card"></use></svg>Invoices &amp; payments <span class="count-badge" id="nav-unpaid-count" hidden>0</span></a>
+      <a class="nav-item" href="#/settings" data-route="/settings"><svg class="icon"><use href="/assets/img/icons.svg#settings"></use></svg>Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="side-user" id="side-user"></div>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-icon sidebar-toggle" id="sidebar-toggle" aria-label="Open navigation"><svg class="icon"><use href="/assets/img/icons.svg#menu"></use></svg></button>
+      <span class="page-title" id="page-title">Dashboard</span>
+      <span class="live-indicator" id="live-indicator" data-tip="Connecting…"><i></i><span class="hide-mobile">Connecting</span></span>
+      <div class="ml-auto flex items-center gap-2">
+        <a class="btn btn-primary btn-sm hide-mobile" href="#/new"><svg class="icon icon-sm"><use href="/assets/img/icons.svg#plus"></use></svg>New request</a>
+        <button class="btn btn-ghost btn-icon" data-theme-toggle aria-label="Toggle theme"></button>
+        <div class="dropdown bell" id="bell">
+          <button class="btn btn-ghost btn-icon" id="bell-btn" aria-label="Notifications"><svg class="icon"><use href="/assets/img/icons.svg#bell"></use></svg></button>
+          <span class="count-badge" id="bell-count" hidden>0</span>
+          <div class="notif-panel" id="notif-panel" hidden>
+            <div class="notif-panel-header"><span>Notifications</span><button class="btn btn-ghost btn-sm" id="mark-all-read">Mark all read</button></div>
+            <div class="notif-list" id="notif-list"></div>
+          </div>
+        </div>
+        <div class="dropdown" id="user-menu">
+          <button class="btn btn-ghost user-btn" id="user-btn" aria-haspopup="true"><span class="avatar avatar-sm" id="user-avatar">?</span><span class="hide-mobile" id="user-name"></span><svg class="icon icon-sm hide-mobile"><use href="/assets/img/icons.svg#chevron-down"></use></svg></button>
+          <div class="menu" id="user-menu-panel">
+            <a class="menu-item" href="#/settings"><svg class="icon"><use href="/assets/img/icons.svg#user"></use></svg>Profile &amp; settings</a>
+            <a class="menu-item" href="#/invoices"><svg class="icon"><use href="/assets/img/icons.svg#credit-card"></use></svg>Invoices &amp; payments</a>
+            <a class="menu-item" href="/" target="_blank" rel="noopener"><svg class="icon"><use href="/assets/img/icons.svg#globe"></use></svg>Visit website</a>
+            <div class="menu-sep"></div>
+            <button class="menu-item danger" id="logout-btn"><svg class="icon"><use href="/assets/img/icons.svg#logout"></use></svg>Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="outlet"></main>
+  </div>
+</div>
+<div class="boot-screen" id="boot"><img src="/assets/img/logo-gold.svg" alt=""><span class="skeleton" style="width:160px;height:12px"></span></div>
+<script type="module" src="/assets/js/portal/app.js?v=20261109t"></script>
+</body>
+</html>

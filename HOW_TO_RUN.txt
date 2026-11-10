@@ -1,0 +1,144 @@
+=====================================================================
+ DESIGNFLOW - HOW TO RUN THE PROJECT IN VISUAL STUDIO CODE (Windows)
+=====================================================================
+The backend (FastAPI) also serves the frontend, so ONE command runs
+the whole website. All commands below go in the VS Code terminal
+(Terminal menu > New Terminal, PowerShell is the default).
+
+---------------------------------------------------------------------
+ 0. OPEN THE PROJECT
+---------------------------------------------------------------------
+    code D:\Saas_project
+
+    (or in VS Code: File > Open Folder... > D:\Saas_project)
+
+---------------------------------------------------------------------
+ 1. ONE-TIME SETUP (only if .venv is missing or on a new machine)
+---------------------------------------------------------------------
+    cd D:\Saas_project
+    python -m venv .venv
+    .\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+
+    Settings live in D:\Saas_project\.env  (database, admin login,
+    Stripe, SMTP, Ollama, AI image keys). Edit and restart to change.
+
+---------------------------------------------------------------------
+ 2. START THE AI MODEL (Ollama) - optional but recommended
+---------------------------------------------------------------------
+    run.bat (step 3) starts Ollama for you automatically, downloads
+    the model on first use, and opens the browser. The commands below
+    are only needed if you want to do it by hand.
+
+    Usually Ollama already runs in the background. To check:
+
+        curl http://localhost:11434/api/tags
+
+    If it is not running:
+
+        ollama serve
+
+    First time only (downloads the model):
+
+        ollama pull llama3.2:3b
+
+    Without Ollama the agents still work using built-in placeholder
+    text, so the site never breaks.
+
+---------------------------------------------------------------------
+ 3. RUN THE WEBSITE  (the main command)
+---------------------------------------------------------------------
+    Stop any old copy first (ignore errors if none is running):
+
+        Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*uvicorn app.main:app*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+
+    Then start the server:
+
+        cd D:\Saas_project\backend
+        ..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+    While developing, add --reload so backend code changes restart
+    the server automatically:
+
+        ..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+    Frontend changes (HTML/CSS/JS) need no restart - just refresh
+    the browser.
+
+    SHORTCUT: .\run.bat (or double-click D:\Saas_project\run.bat)
+    does ALL of this in one go: starts Ollama, downloads the AI model
+    if missing, seeds the database, starts the website and opens the
+    browser. In PowerShell type it with the leading .\  : .\run.bat
+
+    IMPORTANT: browse to http://localhost:8000 - do NOT click the
+    http://0.0.0.0:8000 link the server prints (0.0.0.0 is not a real
+    address in the browser and shows ERR_ADDRESS_INVALID).
+
+---------------------------------------------------------------------
+ 4. OPEN IT IN THE BROWSER
+---------------------------------------------------------------------
+    Website (landing page)   http://localhost:8000
+    Client portal            http://localhost:8000/portal
+    Admin dashboard          http://localhost:8000/admin
+    See-in-live page         http://localhost:8000/admin/live/<request id>
+    API documentation        http://localhost:8000/docs
+    Health check             http://localhost:8000/health
+
+    Admin login: nagatejareddygoliuk07@gmail.com
+    Password:    the ADMIN_PASSWORD value in D:\Saas_project\.env
+    (Re-applied on every start; it cannot be changed inside the app.)
+    Clients create their own accounts at /register.
+
+---------------------------------------------------------------------
+ 5. RUN THE TESTS (52 automated tests, ~20 seconds)
+---------------------------------------------------------------------
+    cd D:\Saas_project\backend
+    ..\.venv\Scripts\python.exe -m pytest
+
+    Tests use an in-memory database and the placeholder AI model,
+    so they never touch your real data.
+
+---------------------------------------------------------------------
+ 6. REGENERATE PAGES AND DOCS (after editing services/seed data)
+---------------------------------------------------------------------
+    cd D:\Saas_project\backend
+    ..\.venv\Scripts\python.exe scripts\generate_service_pages.py   (service pages + services-data.js)
+    ..\.venv\Scripts\python.exe scripts\export_api_docs.py          (docs\API.md)
+    ..\.venv\Scripts\python.exe scripts\export_db_docs.py           (docs\DATABASE.md)
+    ..\.venv\Scripts\python.exe scripts\build_showcase.py           (website images, ~5 min)
+
+    The website's animation libraries (GSAP, ScrollTrigger, Lenis) are
+    stored in frontend\assets\vendor, so the site also works offline.
+
+---------------------------------------------------------------------
+ 7. RUN WITH DOCKER INSTEAD (optional, for deployment)
+---------------------------------------------------------------------
+    cd D:\Saas_project
+    docker compose up -d --build        (uses the Atlas URI from .env)
+    docker compose logs -f api          (watch the logs)
+    docker compose down                 (stop)
+
+---------------------------------------------------------------------
+ 8. IF SOMETHING GOES WRONG
+---------------------------------------------------------------------
+ -  "Port 8000 already in use"  -> run the Stop command in step 3.
+ -  Login gives a server error  -> an old server is still running;
+    stop it (step 3) and start again.
+ -  Agents produce placeholder text -> Ollama is not running or the
+    model is not pulled (step 2).
+ -  "Database: error" on /health -> no internet or MongoDB Atlas is
+    unreachable; check MONGO_URI in .env.
+ -  Designs look like simple shapes, no AI images -> no image key:
+    put OPENAI_API_KEY=... (or GEMINI_API_KEY=...) in .env, restart.
+ -  Server log files: backend\server.log and backend\server.err.log
+    when started in the background; otherwise output is in the
+    terminal itself.
+
+---------------------------------------------------------------------
+ WHERE THINGS LIVE
+---------------------------------------------------------------------
+    backend\app\          FastAPI code (api, agents, design engine)
+    frontend\             website, portal, admin (plain HTML/CSS/JS)
+    uploads\clients\      every client's files, one folder per client
+    docs\                 API, database, agents and deployment guides
+    .env                  all settings and keys
+=====================================================================

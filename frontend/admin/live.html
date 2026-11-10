@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-lock>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Live — Designflow</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/base.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/components.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/live.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/motion.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/app-prism.css?v=20261109t">
+</head>
+<body class="live-page">
+  <header class="live-top">
+    <a class="live-brand" href="/admin" title="Back to the dashboard"><img src="/assets/img/logo-gold.svg" alt="">Designflow</a>
+    <span class="live-pill" id="live-pill"><span class="live-dot"></span>LIVE</span>
+    <div class="live-top-title" id="top-title">Loading request…</div>
+    <div class="live-top-actions" id="top-actions"></div>
+    <span class="ws-indicator connecting" id="ws-indicator"><span class="live-dot"></span><span class="ws-label">Connecting…</span></span>
+    <button class="btn btn-ghost btn-icon" data-theme-toggle aria-label="Toggle theme"></button>
+  </header>
+
+  <main class="live-main" id="live-main">
+    <section class="live-hero card" id="hero"><div class="card-body"><div class="skeleton" style="height:22px;width:40%"></div></div></section>
+    <section class="live-steps card" id="steps"></section>
+    <div class="live-grid">
+      <aside class="live-col" id="now"></aside>
+      <section class="live-col live-feed-wrap card">
+        <div class="live-feed-head">
+          <h2><svg class="icon"><use href="/assets/img/icons.svg#activity"></use></svg>Live feed</h2>
+          <span class="text-xs text-3" id="feed-count"></span>
+          <label class="toggle ml-auto"><input type="checkbox" id="follow" checked><span class="track"></span>Follow</label>
+        </div>
+        <div class="live-feed" id="feed"><div class="live-empty">Waiting for the first event…</div></div>
+      </section>
+      <aside class="live-col" id="preview"></aside>
+    </div>
+    <section class="live-logs card" id="logs"></section>
+  </main>
+
+  <script type="module" src="/assets/js/admin/live.js?v=20261109t"></script>
+</body>
+</html>

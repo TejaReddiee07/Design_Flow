@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{name}} — Designflow</title>
+  <meta name="description" content="{{description}}">
+  <meta property="og:title" content="{{name}} — Designflow">
+  <meta property="og:description" content="{{tagline}}">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/base.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/components.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/vendor/lenis.css?v=20261109t">
+  <link rel="stylesheet" href="/assets/css/prism.css?v=20261109t">
+  <script>(function(){document.documentElement.classList.add('js');})();</script>
+</head>
+<body class="sf pr pr-page" data-nav-active="services">
+
+{{nav}}
+
+<main id="main">
+  <section class="pr-page-hero">
+    <div class="pr-container pr-svc-hero">
+      <div class="pr-svc-hero-text">
+        <nav class="pr-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/services">Services</a><span aria-hidden="true">/</span><span aria-current="page">{{name}}</span></nav>
+        <p class="pr-tag">{{category}}</p>
+        <h1 class="pr-title pr-title-xl">{{name}}</h1>
+        <p class="pr-lead">{{tagline}} {{description}}</p>
+        <ul class="pr-facts-row" aria-label="Price and delivery">
+          <li><b>${{price_usd}}</b> · £{{price_gbp}} · ₹{{price_inr}} <span>{{price_unit}}</span></li>
+          <li>{{turnaround_days}}&#8209;day delivery</li>
+          <li>Unlimited revisions</li>
+        </ul>
+        <div class="pr-ctas pr-ctas-left">
+          <a href="/register?service={{slug}}" class="pr-btn pr-btn-white" data-cta data-service="{{slug}}">Order now · ${{price_usd}} <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/img/icons.svg#arrow-up-right"></use></svg></a>
+          <a href="/#pricing" class="pr-btn pr-btn-glass">See all prices</a>
+        </div>
+      </div>
+      <figure class="pr-feature-media pr-glow-violet pr-svc-art">{{mockup}}</figure>
+    </div>
+  </section>
+
+  <section class="pr-section pr-svc-body">
+    <div class="pr-container pr-svc-layout">
+      <div class="pr-svc-main">
+        <h2 class="pr-title-sm">What you get</h2>
+        <p class="pr-sub">{{long_description}}</p>
+
+        <h3 class="pr-h3">Deliverables</h3>
+        <ul class="pr-checks">
+{{deliverables}}
+        </ul>
+
+        <h3 class="pr-h3">How a {{name_lower}} request flows</h3>
+        <ol class="pr-steps pr-steps-2">
+          <li class="pr-step"><span class="pr-step-n">01</span><h3>Brief</h3><p>Fill the {{name_lower}} form. It asks exactly what we need, so there's no back-and-forth.</p></li>
+          <li class="pr-step"><span class="pr-step-n">02</span><h3>Agents prepare</h3><p>Strategy and Content agents research your brand and competitors and prepare copy and concept directions.</p></li>
+          <li class="pr-step"><span class="pr-step-n">03</span><h3>Design &amp; QA</h3><p>Concepts are drafted and scored against your brand assets. Your designer finishes the visuals.</p></li>
+          <li class="pr-step"><span class="pr-step-n">04</span><h3>Approve &amp; download</h3><p>Files land in your portal and Drive within about {{turnaround_days}} day(s). Unlimited revisions.</p></li>
+        </ol>
+
+        <h3 class="pr-h3">What we'll ask you</h3>
+        <p class="pr-note">The request form for this service has these fields. Required ones are marked.</p>
+        <ul class="pr-fields">
+{{fields}}
+        </ul>
+
+        <h3 class="pr-h3">Common questions</h3>
+        <div class="faq">
+          <details><summary>How does payment work?<svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#plus"></use></svg></summary><div class="answer">Each request has a fixed price (${{price_usd}}, £{{price_gbp}} or ₹{{price_inr}} {{price_unit}}). You create an account, submit the brief, pay securely, and we start. No subscription, no contract.</div></details>
+          <details><summary>How many revisions can I ask for?<svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#plus"></use></svg></summary><div class="answer">Unlimited. Leave feedback on the delivery and the request re-enters the pipeline with priority.</div></details>
+          <details><summary>What if I don't have brand guidelines yet?<svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#plus"></use></svg></summary><div class="answer">Share whatever you have: a logo, a few colours, sites you admire. The Strategy Agent fills the gaps and your designer proposes a direction. Many clients start with a logo and build from there.</div></details>
+        </div>
+      </div>
+
+      <aside class="pr-svc-aside">
+        <div class="pr-aside-card">
+          <p class="pr-svc-cat">{{category}}</p>
+          <p class="pr-aside-name">{{name}}</p>
+          <p class="pr-aside-price"><span>${{price_usd}}</span> <small>{{price_unit}}</small></p>
+          <p class="pr-aside-alt">£{{price_gbp}} · ₹{{price_inr}}</p>
+          <ul class="pr-checks pr-checks-sm">
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#check"></use></svg>About {{turnaround_days}}-day turnaround</li>
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#check"></use></svg>Unlimited revisions</li>
+            <li><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#check"></use></svg>Source files &amp; Drive sync</li>
+          </ul>
+          <a href="/register?service={{slug}}" class="pr-btn pr-btn-white pr-btn-block" data-cta data-service="{{slug}}">Order this design</a>
+          <p class="pr-note pr-center">Pay per request · no subscription</p>
+        </div>
+        <div class="pr-aside-card pr-aside-help">
+          <b>Not sure if this fits?</b>
+          <p>Tell us what you're trying to achieve and we'll recommend the right service.</p>
+          <a href="/#contact" class="pr-btn pr-btn-glass pr-btn-sm">Contact us</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="pr-section pr-related">
+    <div class="pr-container">
+      <div class="pr-catalogue-head">
+        <h2 class="pr-title-sm">Related services</h2>
+        <a href="/services" class="pr-link">All services <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/img/icons.svg#arrow-right"></use></svg></a>
+      </div>
+      <div class="pr-grid pr-grid-4">
+{{related}}
+      </div>
+    </div>
+  </section>
+</main>
+
+{{footer}}
+
+<script src="/assets/vendor/gsap.min.js?v=20261109t" defer></script>
+<script src="/assets/vendor/ScrollTrigger.min.js?v=20261109t" defer></script>
+<script src="/assets/vendor/lenis.min.js?v=20261109t" defer></script>
+<script type="module" src="/assets/js/landing/main.js?v=20261109t"></script>
+</body>
+</html>
